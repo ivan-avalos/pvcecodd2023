@@ -11,6 +11,7 @@ migrate conn = do
                 \ id INTEGER PRIMARY KEY, \
                 \ nombre TEXT NOT NULL, \
                 \ apellidos TEXT NOT NULL, \
+                \ password TEXT NOT NULL, \
                 \ fecha_nacimiento TEXT NOT NULL, \
                 \ genero TEXT NOT NULL, \
                 \ departamento_id INTEGER, \
