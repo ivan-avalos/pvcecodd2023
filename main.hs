@@ -12,6 +12,7 @@ migrate conn = do
                 \ nombre TEXT NOT NULL, \
                 \ apellidos TEXT NOT NULL, \
                 \ password TEXT NOT NULL, \
+                \ admin INTEGER DEFAULT 0, \
                 \ fecha_nacimiento TEXT NOT NULL, \
                 \ genero TEXT NOT NULL, \
                 \ departamento_id INTEGER, \
