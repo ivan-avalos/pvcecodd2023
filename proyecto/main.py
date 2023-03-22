@@ -1,12 +1,18 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QMessageBox
-from PyQt5.QtWidgets import QMainWindow
-import sqlite3
-import bcrypt
+
+from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMainWindow,
+                             QMessageBox, QPushButton, QVBoxLayout, QWidget)
+
+from database import Database
+from models import Usuario
+
 
 class Login(QWidget):
-    def __init__(self):
+    db: Database
+     
+    def __init__(self, db: Database):
         super().__init__()
+        self.db = db
         self.setWindowTitle('Login')
         self.setGeometry(300, 300, 500, 300)
 
@@ -38,28 +44,27 @@ class Login(QWidget):
         password = self.password_input.text()
 
         # CHECA SI EL USUARIO ESTA EN LA BD
-        conn = sqlite3.connect('mantenimiento.db')
-        c = conn.cursor()
+        c = self.db.conn.cursor()
         c.execute("SELECT * FROM usuario WHERE id=? AND clave=?", (username, password))
         result = c.fetchone()
-        #conn.close()
 
         if result is None:
             # USUARIO INCORRECTO
             QMessageBox.warning(self, 'Error', 'Invalid username')
-        #VERIFY IF YOU ARE AN ADMINISTRATOR OR NOT
-        elif result[4] == "admin":
-            self.admin_window = AdminWindow()
-            self.admin_window.show()
-            self.close() 
         else:
-            self.user_window = UserWindow()
-            self.user_window.show()
-            self.close()
+            usuario = Usuario.from_row(result)
+            if usuario.tipo == "admin":
+                #VERIFY IF YOU ARE AN ADMINISTRATOR OR NOT
+                self.admin_window = AdminWindow()
+                self.admin_window.show()
+                self.close()
+            else:
+                self.user_window = UserWindow()
+                self.user_window.show()
+                self.close()
 
     def quit(self):
         # Close the entire application
-        
         QApplication.quit()
           
 # -----------------------------------------------------------------------VENTANA PRINCIPAL PARA EL ADMINISTRADOR         
@@ -80,7 +85,6 @@ class AdminWindow(QMainWindow):
         self.btnusers = QPushButton('USERS', self)
         self.btnm = QPushButton('MAINTENANCE', self)
         self.btnexit = QPushButton('LOG OUT', self)
-       
 
         self.message_label.move(120, 70)
         self.btnusers.move(210,100)
@@ -95,8 +99,6 @@ class AdminWindow(QMainWindow):
          self.close()
         # Show the main window
          self.login.show()
-
-
 
 # ========================================================================VENTANA PRINCIPAL PARA EL USUARIO
 class UserWindow(QMainWindow):
@@ -116,7 +118,6 @@ class UserWindow(QMainWindow):
         self.btnm = QPushButton('MAINTENANCE', self)
         self.btnexit = QPushButton('LOG OUT', self)
        
-
         self.message_label.move(120, 70)
         self.btnm.move(210,100)
         self.btnexit.move(210,150)
@@ -129,11 +130,15 @@ class UserWindow(QMainWindow):
          self.close()
         # Show the main window
          self.login.show()
-   
-
+  
 #--------------------------------------------------------------------------MAIN
 if __name__ == '__main__':
+    db = Database()
+    db.connect('mantenimiento.db')
+    db.migrate()
     app = QApplication(sys.argv)
-    login = Login()
+    login = Login(db)
     login.show()
-    sys.exit(app.exec_())
+    res = app.exec_()
+    db.disconnect()
+    sys.exit(res)
