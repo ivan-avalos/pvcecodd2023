@@ -62,7 +62,7 @@ class Usuario:
     apellidos: str
     usuario: str
     clave: str
-    tipo: str
+    tipo: int
     fecha_nacimiento: Date
     genero: str
     departamento_id: Optional[int]

@@ -44,16 +44,17 @@ class Login(QWidget):
         password = self.password_input.text()
 
         # CHECA SI EL USUARIO ESTA EN LA BD
-        c = self.db.conn.cursor()
-        c.execute("SELECT * FROM usuario WHERE id=? AND clave=?", (username, password))
-        result = c.fetchone()
+        cur = self.db.conn.cursor()
+        cur.execute("SELECT * FROM usuarios WHERE usuario=? AND clave=?", (username, password))
+        row = cur.fetchone()
 
-        if result is None:
+        if row is None:
             # USUARIO INCORRECTO
             QMessageBox.warning(self, 'Error', 'Invalid username')
         else:
-            usuario = Usuario.from_row(result)
-            if usuario.tipo == "admin":
+            usuario = Usuario.from_row(row)
+            print(usuario)
+            if usuario.tipo == "1":
                 #VERIFY IF YOU ARE AN ADMINISTRATOR OR NOT
                 self.admin_window = AdminWindow()
                 self.admin_window.show()
