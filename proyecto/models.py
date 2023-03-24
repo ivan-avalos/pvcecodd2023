@@ -1,11 +1,14 @@
+import uuid
 from dataclasses import dataclass
 from sqlite3 import Date
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
+
+from database import Database
 
 
 @dataclass
 class Departamento:
-    id: int
+    id: Optional[int]
     nombre: str
 
     @staticmethod
@@ -15,22 +18,54 @@ class Departamento:
             nombre = row[1]
         )
 
-    def to_row(self) -> Tuple:
-        return (
-            self.id,
-            self.nombre
-        )
+    @staticmethod
+    def all(db: Database) -> List["Departamento"]:
+        cur = db.conn.cursor()
+        cur.execute("SELECT * FROM departamentos")
+        deps = [Departamento.from_row(d) for d in cur.fetchall()]
+        cur.close()
+        return deps
+
+    @staticmethod
+    def find(db: Database, id: int) -> Optional["Departamento"]:
+        cur = db.conn.cursor()
+        cur.execute("SELECT * FROM departamentos WHERE id = ?", (id,))
+        row = cur.fetchone()
+        cur.close()
+        return Departamento.from_row(row) if row else None
+
+    def save(self, db: Database) -> None:
+        cur = db.conn.cursor()
+        row = (self.nombre,)
+        if self.id == None:
+            cur.execute('''
+            INSERT INTO departamentos (nombre) VALUES (?)
+            ''', row)
+        else:
+            cur.execute('''
+            UPDATE departamentos SET nombre = ?
+            ''', row)
+        db.conn.commit()
+        cur.close()
+
+    def remove(self, db: Database) -> None:
+        cur = db.conn.cursor()
+        cur.execute("DELETE FROM departamentos WHERE id = ?", (self.id,))
+        db.conn.commit()
+        cur.close()
+        self.id = None
 
 @dataclass
 class Usuario:
-    id: str
+    id: Optional[str]
     nombre: str
     apellidos: str
+    usuario: str
     clave: str
     tipo: str
     fecha_nacimiento: Date
     genero: str
-    departamento: Optional[Departamento]
+    departamento_id: Optional[int]
 
     @staticmethod
     def from_row(row: Tuple) -> "Usuario":
@@ -38,54 +73,148 @@ class Usuario:
             id = row[0],
             nombre = row[1],
             apellidos = row[2],
-            clave = row[3],
-            tipo = row[4],
-            fecha_nacimiento = row[5],
-            genero = row[6],
-            departamento = None,
+            usuario = row[3],
+            clave = row[4],
+            tipo = row[5],
+            fecha_nacimiento = row[6],
+            genero = row[7],
+            departamento_id = row[8],
         )
 
-    def to_row(self) -> Tuple:
-        return (
-            self.id,
+    def departamento(self, db: Database) -> Optional[Departamento]:
+        if self.departamento_id == None:
+            return None
+        return Departamento.find(db, self.departamento_id)
+
+    @staticmethod
+    def all(db: Database) -> List["Usuario"]:
+        cur = db.conn.cursor()
+        cur.execute("SELECT * FROM usuarios")
+        users = [Usuario.from_row(u) for u in cur.fetchall()]
+        cur.close()
+        return users
+
+    @staticmethod
+    def find(db: Database, id: str) -> Optional["Usuario"]:
+        cur = db.conn.cursor()
+        cur.execute("SELECT * FROM usuarios WHERE id = ?", (id,))
+        row = cur.fetchone()
+        cur.close()
+        return Usuario.from_row(row) if row else None
+
+    def save(self, db: Database) -> None:
+        cur = db.conn.cursor()
+        row = (
             self.nombre,
             self.apellidos,
+            self.usuario,
             self.clave,
             self.tipo,
             self.fecha_nacimiento,
             self.genero,
-            self.departamento.id if self.departamento else None,
+            self.departamento_id,
         )
+        if self.id == None:
+            id = str(uuid.uuid4())
+            cur.execute('''
+            INSERT INTO usuarios (
+            id, nombre, apellidos, usuario, clave, tipo,
+            fecha_nacimiento, genero, departamento_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (id,) + row)
+        else:
+            cur.execute('''
+            UPDATE usuarios SET
+            nombre = ?, apellidos = ?, usuario = ?,
+            clave = ?, tipo = ?, fecha_nacimiento = ?,
+            genero = ?, departamento_id = ?
+            ''', row)
+        db.conn.commit()
+        cur.close()
+
+    def remove(self, db: Database) -> None:
+        cur = db.conn.cursor()
+        cur.execute("DELETE FROM usuarios WHERE id = ?", (self.id,))
+        db.conn.commit()
+        cur.close()
+        self.id = None
 
 @dataclass
 class Maquina:
-    id: str
+    serie: Optional[str]
     modelo: str
     marca: str
-    usuario: Optional[Usuario]
-    departamento: Optional[Departamento]
+    usuario_id: Optional[str]
+    departamento_id: Optional[int]
 
     @staticmethod
     def from_row(row: Tuple) -> "Maquina":
         return Maquina(
-            id = row[0],
+            serie = row[0],
             modelo = row[1],
             marca = row[2],
-            usuario = None,
-            departamento = None,
+            usuario_id = row[3],
+            departamento_id = row[4],
         )
 
-    def to_row(self) -> Tuple:
-        return (
-            self.id,
+    def usuario(self, db: Database) -> Optional[Usuario]:
+        if self.usuario_id == None:
+            return None
+        return Usuario.find(db, self.usuario_id)
+
+    def departamento(self, db: Database) -> Optional[Departamento]:
+        if self.departamento_id == None:
+            return None
+        return Departamento.find(db, self.departamento_id)
+
+    @staticmethod
+    def all(db: Database) -> List["Maquina"]:
+        cur = db.conn.cursor()
+        cur.execute("SELECT * FROM maquinas")
+        maquinas = [Maquina.from_row(m) for m in cur.fetchall()]
+        cur.close()
+        return maquinas
+
+    @staticmethod
+    def find(db: Database, serie: str) -> Optional["Maquina"]:
+        cur = db.conn.cursor()
+        cur.execute("SELECT * FROM maquinas WHERE serie = ?", (serie,))
+        row = cur.fetchone()
+        cur.close()
+        return Maquina.from_row(row) if row else None
+
+    def save(self, db: Database) -> None:
+        cur = db.conn.cursor()
+        row = (
             self.modelo,
             self.marca,
-            self.departamento
+            self.usuario_id,
+            self.departamento_id,
         )
+        if self.serie == None:
+            cur.execute('''
+            INSERT INTO maquinas (
+            modelo, marca, usuario_id, departamento_id
+            ) VALUES (?, ?, ?, ?)
+            ''', row)
+        else:
+            cur.execute('''
+            UPDATE maquinas SET
+            modelo = ?, marca = ?, usuario_id = ?, departamento_id = ?
+            ''', row)
+        db.conn.commit()
+        cur.close()
+
+    def remove(self, db: Database) -> None:
+        cur = db.conn.cursor()
+        cur.execute("DELETE FROM maquinas WHERE serie = ?", (self.serie,))
+        db.conn.commit()
+        cur.close()
+        self.serie = None
 
 @dataclass
 class Material:
-    id: int
+    id: Optional[int]
     nombre: str
     stock: float
 
@@ -97,19 +226,52 @@ class Material:
             stock = row[2],
         )
 
-    def to_row(self) -> Tuple:
-        return (
-            self.id,
+    @staticmethod
+    def all(db: Database) -> List["Material"]:
+        cur = db.conn.cursor()
+        cur.execute("SELECT * FROM materiales")
+        materiales = [Material.from_row(m) for m in cur.fetchall()]
+        cur.close()
+        return materiales
+
+    @staticmethod
+    def find(db: Database, id: int) -> Optional["Maquina"]:
+        cur = db.conn.cursor()
+        cur.execute("SELECT * FROM materiales WHERE id = ?", (id,))
+        row = cur.fetchone()
+        cur.close()
+        return Maquina.from_row(row) if row else None
+
+    def save(self, db: Database) -> None:
+        cur = db.conn.cursor()
+        row = (
             self.nombre,
             self.stock,
         )
+        if self.id == None:
+            cur.execute('''
+            INSERT INTO materiales (nombre, stock) VALUES (?, ?)
+            ''', row)
+        else:
+            cur.execute('''
+            UPDATE materiales SET nombre = ?, stock = ?
+            ''', row)
+        db.conn.commit()
+        cur.close()
+
+    def remove(self, db: Database) -> None:
+        cur = db.conn.cursor()
+        cur.execute("DELETE FROM materiales WHERE id = ?", (self.id,))
+        db.conn.commit()
+        cur.close()
+        self.id = None
 
 @dataclass
 class Mantenimiento:
-    id: int
+    id: Optional[int]
     tipo: str
     fecha_creacion: Date
-    servidor: Optional[Usuario]
+    servidor_id: Optional[str]
     fecha_servicio: Date
 
     @staticmethod
@@ -118,7 +280,69 @@ class Mantenimiento:
             id = row[0],
             tipo = row[1],
             fecha_creacion = row[2],
-            servidor = None,
-            fecha_servicio = row[3],
+            servidor_id = row[3],
+            fecha_servicio = row[4],
         )
+
+    def servidor(self, db: Database) -> Optional[Usuario]:
+        if self.servidor_id == None:
+            return None
+        return Usuario.find(db, self.servidor_id)
+
+    def materiales(self, db: Database) -> List[Material]:
+        cur = db.conn.cursor()
+        cur.execute('''
+        SELECT materiales.* FROM mantenimientos_materiales
+        JOIN materiales ON materiales.id = mantenimientos_materiales.material_id
+        WHERE mantenimiento_id = ?
+        ''', (self.id,))
+        materials = [Material.from_row(m) for m in cur.fetchall()]
+        cur.close()
+        return materials
+
+    @staticmethod
+    def all(db: Database) -> List["Mantenimiento"]:
+        cur = db.conn.cursor()
+        cur.execute("SELECT * FROM mantenimientos")
+        mants = [Mantenimiento.from_row(m) for m in cur.fetchall()]
+        cur.close()
+        return mants
+
+    @staticmethod
+    def find(db: Database, id: int) -> Optional["Mantenimiento"]:
+        cur = db.conn.cursor()
+        cur.execute("SELECT * FROM mantenimientos WHERE id = ?", (id,))
+        row = cur.fetchone()
+        cur.close()
+        return Mantenimiento.from_row(row) if row else None
+
+    def save(self, db: Database) -> None:
+        cur = db.conn.cursor()
+        row = (
+            self.tipo,
+            self.fecha_creacion,
+            self.servidor_id,
+            self.fecha_servicio,
+        )
+        if self.id == None:
+            cur.execute('''
+            INSERT INTO mantenimientos (
+            tipo, fecha_creacion, servidor, fecha_servicio
+            ) VALUES (?, ?, ?, ?)
+            ''', row)
+        else:
+            cur.execute('''
+            UPDATE mantenimientos SET
+            tipo = ?, fecha_creacion = ?, servidor = ?, fecha_servicio = ?
+            ''', row)
+        db.conn.commit()
+        cur.close()
+
+    def remove(self, db: Database) -> None:
+        cur = db.conn.cursor()
+        cur.execute("DELETE FROM mantenimientos WHERE id = ?", (self.id,))
+        db.conn.commit()
+        cur.close()
+        self.id = None
+    
     

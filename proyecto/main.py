@@ -141,4 +141,13 @@ if __name__ == '__main__':
     login.show()
     res = app.exec_()
     db.disconnect()
-    sys.exit(res)
+    # sys.exit(res)
+
+'''
+CÓDIGO DE PRUEBA
+----------------
+from models import *
+
+db = Database()
+db.connect('mantenimiento.db')
+'''

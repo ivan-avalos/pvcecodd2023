@@ -24,7 +24,8 @@ class Database:
         id TEXT PRIMARY KEY,
         nombre TEXT NOT NULL,
         apellidos TEXT NOT NULL,
-        password TEXT NOT NULL,
+        usuario TEXT NOT NULL,
+        clave TEXT NOT NULL,
         tipo TEXT DEFAULT 0,
         fecha_nacimiento TEXT NOT NULL,
         genero TEXT NOT NULL,
@@ -69,3 +70,6 @@ class Database:
         FOREIGN KEY (material_id) REFERENCES materiales (id) ON DELETE CASCADE,
         PRIMARY KEY (mantenimiento_id, material_id))
         ''')
+
+        cursor.close()
+

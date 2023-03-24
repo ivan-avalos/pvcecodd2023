@@ -1,4 +1,6 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QLabel, QDialog, QComboBox ,QStackedLayout
+from PyQt5.QtWidgets import (QApplication, QComboBox, QDialog, QLabel,
+                             QLineEdit, QPushButton, QVBoxLayout, QWidget)
+
 
 # USER WINDOW (INSERT USER) ==================================================================
 class InsertWindow(QDialog):
