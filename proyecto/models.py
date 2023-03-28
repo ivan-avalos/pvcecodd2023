@@ -44,7 +44,8 @@ class Departamento:
         else:
             cur.execute('''
             UPDATE departamentos SET nombre = ?
-            ''', row)
+            WHERE id = ?
+            ''', row + (self.id,))
         db.conn.commit()
         cur.close()
 
@@ -128,7 +129,8 @@ class Usuario:
             nombre = ?, apellidos = ?, usuario = ?,
             clave = ?, tipo = ?, fecha_nacimiento = ?,
             genero = ?, departamento_id = ?
-            ''', row)
+            WHERE id = ?
+            ''', row + (self.id,))
         db.conn.commit()
         cur.close()
 
@@ -141,7 +143,7 @@ class Usuario:
 
 @dataclass
 class Maquina:
-    serie: Optional[str]
+    serie: str
     modelo: str
     marca: str
     usuario_id: Optional[str]
@@ -190,17 +192,20 @@ class Maquina:
             self.marca,
             self.usuario_id,
             self.departamento_id,
+            self.serie,
         )
-        if self.serie == None:
+        # Si no existe, entonces crear la máquina
+        if Maquina.find(db, self.serie) == None:
             cur.execute('''
             INSERT INTO maquinas (
-            modelo, marca, usuario_id, departamento_id
-            ) VALUES (?, ?, ?, ?)
+            modelo, marca, usuario_id, departamento_id, serie
+            ) VALUES (?, ?, ?, ?, ?)
             ''', row)
         else:
             cur.execute('''
             UPDATE maquinas SET
             modelo = ?, marca = ?, usuario_id = ?, departamento_id = ?
+            WHERE serie = ?
             ''', row)
         db.conn.commit()
         cur.close()
@@ -255,7 +260,8 @@ class Material:
         else:
             cur.execute('''
             UPDATE materiales SET nombre = ?, stock = ?
-            ''', row)
+            WHERE id = ?
+            ''', row + (self.id,))
         db.conn.commit()
         cur.close()
 
@@ -334,7 +340,8 @@ class Mantenimiento:
             cur.execute('''
             UPDATE mantenimientos SET
             tipo = ?, fecha_creacion = ?, servidor = ?, fecha_servicio = ?
-            ''', row)
+            WHERE id = ?
+            ''', row + (self.id,))
         db.conn.commit()
         cur.close()
 
