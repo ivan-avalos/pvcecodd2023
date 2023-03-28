@@ -77,7 +77,7 @@ class Usuario:
             usuario = row[3],
             clave = row[4],
             tipo = row[5],
-            fecha_nacimiento = row[6],
+            fecha_nacimiento = Date.fromisoformat(row[6]),
             genero = row[7],
             departamento_id = row[8],
         )
@@ -103,6 +103,14 @@ class Usuario:
         cur.close()
         return Usuario.from_row(row) if row else None
 
+    @staticmethod
+    def findByUsername(db: Database, usuario: str) -> Optional["Usuario"]:
+        cur = db.conn.cursor()
+        cur.execute("SELECT * FROM usuarios WHERE usuario = ?", (usuario,))
+        row = cur.fetchone()
+        cur.close()
+        return Usuario.from_row(row) if row else None
+
     def save(self, db: Database) -> None:
         cur = db.conn.cursor()
         row = (
@@ -111,7 +119,7 @@ class Usuario:
             self.usuario,
             self.clave,
             self.tipo,
-            self.fecha_nacimiento,
+            self.fecha_nacimiento.isoformat(),
             self.genero,
             self.departamento_id,
         )

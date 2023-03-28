@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMainWindow,
 
 from database import Database
 from models import Usuario
+from usuarios import *
 
 
 class Login(QWidget):
@@ -56,11 +57,11 @@ class Login(QWidget):
             print(usuario)
             if usuario.tipo == "1":
                 #VERIFY IF YOU ARE AN ADMINISTRATOR OR NOT
-                self.admin_window = AdminWindow()
+                self.admin_window = AdminWindow(self.db)
                 self.admin_window.show()
                 self.close()
             else:
-                self.user_window = UserWindow()
+                self.user_window = UserWindow(self.db)
                 self.user_window.show()
                 self.close()
 
@@ -70,8 +71,11 @@ class Login(QWidget):
           
 # -----------------------------------------------------------------------VENTANA PRINCIPAL PARA EL ADMINISTRADOR         
 class AdminWindow(QMainWindow):
-    def __init__(self):
+    db: Database
+    
+    def __init__(self, db: Database):
         super().__init__()
+        self.db = db
 
         # Store a reference to the main window(login)
         self.login = login
@@ -93,6 +97,8 @@ class AdminWindow(QMainWindow):
         self.btnexit.move(210,200)
 
         # Connect the buttons to their respective functions
+        self.btnusers.clicked.connect(self.open_users)
+        self.btnm.clicked.connect(self.open_maintenance)
         self.btnexit.clicked.connect(self.go_back)
     
     def go_back(self):
@@ -101,10 +107,20 @@ class AdminWindow(QMainWindow):
         # Show the main window
          self.login.show()
 
+    def open_users(self):
+        self.userops_win = UserOperationMenu(self.db)
+        self.userops_win.show()
+
+    def open_maintenance(self):
+        pass
+
 # ========================================================================VENTANA PRINCIPAL PARA EL USUARIO
 class UserWindow(QMainWindow):
-    def __init__(self):
+    db: Database
+    
+    def __init__(self, db: Database):
         super().__init__()
+        self.db = db
 
         # Store a reference to the main window(login)
         self.login = login
@@ -124,6 +140,7 @@ class UserWindow(QMainWindow):
         self.btnexit.move(210,150)
 
         # Connect the buttons to their respective functions
+        self.btnm.clicked.connect(self.open_maintenance)
         self.btnexit.clicked.connect(self.go_back)
 
     def go_back(self):
@@ -131,6 +148,9 @@ class UserWindow(QMainWindow):
          self.close()
         # Show the main window
          self.login.show()
+
+    def open_maintenance(self):
+        pass
   
 #--------------------------------------------------------------------------MAIN
 if __name__ == '__main__':

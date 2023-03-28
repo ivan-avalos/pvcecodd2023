@@ -24,7 +24,7 @@ class Database:
         id TEXT PRIMARY KEY,
         nombre TEXT NOT NULL,
         apellidos TEXT NOT NULL,
-        usuario TEXT NOT NULL,
+        usuario TEXT UNIQUE NOT NULL,
         clave TEXT NOT NULL,
         tipo TEXT DEFAULT 0,
         fecha_nacimiento TEXT NOT NULL,
