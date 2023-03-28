@@ -223,7 +223,6 @@ class Maquina:
         cur.execute("DELETE FROM maquinas WHERE serie = ?", (self.serie,))
         db.conn.commit()
         cur.close()
-        self.serie = None
 
 @dataclass
 class Material:
