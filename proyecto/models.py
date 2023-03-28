@@ -353,6 +353,37 @@ class Mantenimiento:
         db.conn.commit()
         cur.close()
 
+    def add_material(self, db: Database, material_id: int, cantidad: float):
+        if self.id != None:
+            cur = db.conn.cursor()
+            cur.execute('''
+            INSERT INTO mantenimientos_materiales (
+            mantenimiento_id, material_id, cantidad
+            ) VALUES (?, ?, ?)
+            ''', (self.id, material_id, cantidad))
+            db.conn.commit()
+            cur.close()
+
+    def edit_material(self, db: Database, material_id: int, cantidad: float):
+        if self.id != None:
+            cur = db.conn.cursor()
+            cur.execute('''
+            UPDATE mantenimientos_materiales SET cantidad = ?
+            WHERE mantenimiento_id = ? AND material_id = ?
+            ''', (cantidad, self.id, material_id))
+            db.conn.commit()
+            cur.close()
+
+    def remove_material(self, db: Database, material_id: int):
+        if self.id != None:
+            cur = db.conn.cursor()
+            cur.execute('''
+            DELETE FROM mantenimientos_materiales
+            WHERE mantenimiento_id = ? AND material_id = ?
+            ''', (self.id, material_id))
+            db.conn.commit()
+            cur.close()
+
     def remove(self, db: Database) -> None:
         cur = db.conn.cursor()
         cur.execute("DELETE FROM mantenimientos WHERE id = ?", (self.id,))
