@@ -286,16 +286,16 @@ class Mantenimiento:
     tipo: str
     fecha_creacion: Date
     servidor_id: Optional[str]
-    fecha_servicio: Date
+    fecha_servicio: Optional[Date]
 
     @staticmethod
     def from_row(row: Tuple) -> "Mantenimiento":
         return Mantenimiento(
             id = row[0],
             tipo = row[1],
-            fecha_creacion = row[2],
+            fecha_creacion = Date.fromisoformat(row[2]),
             servidor_id = row[3],
-            fecha_servicio = row[4],
+            fecha_servicio = Date.fromisoformat(row[4]) if row[4] else None,
         )
 
     def servidor(self, db: Database) -> Optional[Usuario]:
@@ -334,9 +334,9 @@ class Mantenimiento:
         cur = db.conn.cursor()
         row = (
             self.tipo,
-            self.fecha_creacion,
+            self.fecha_creacion.isoformat(),
             self.servidor_id,
-            self.fecha_servicio,
+            self.fecha_servicio.isoformat() if self.fecha_servicio else None,
         )
         if self.id == None:
             cur.execute('''
