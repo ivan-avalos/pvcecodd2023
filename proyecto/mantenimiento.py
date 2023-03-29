@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (QComboBox, QDialog, QLabel, QLineEdit,
 
 from database import Database
 from models import Mantenimiento
+from usuarios import QRcode
 
 
 # USER WINDOW (INSERT USER) ==================================================================
@@ -146,19 +147,7 @@ class UpdateMaintenanceWindow(QDialog):
             self.mant.remove(self.db)
             self.close()
         
-#===============================================================================
-
-
-#===============================================================================
-class QRcode(QDialog):
-    def __init__(self):
-        super().__init__()
-
-        # Store a reference to the main window(login)
-
-        self.setWindowTitle('QR Query')
-        self.setGeometry(400, 400, 400, 400)
-        
+#===============================================================================        
         
 #===============================================================================
 class MaintenanceOperationMenu(QWidget):
@@ -201,4 +190,4 @@ class MaintenanceOperationMenu(QWidget):
         UpdateMaintenanceWindow(self.db).exec_()
     
     def showcode(self):
-        QRcode().exec_()
+        QRcode("mantenimientos_qr.png").exec_()

@@ -1,5 +1,6 @@
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import (QComboBox, QDialog, QLabel, QLineEdit,
-                             QPushButton, QVBoxLayout, QWidget)
+                             QMainWindow, QPushButton, QVBoxLayout, QWidget)
 
 from database import *
 from models import *
@@ -218,17 +219,27 @@ class UpdateUserWindow(QDialog):
     def delete_user(self):
         if self.user:
             self.user.remove(self.db)
-        self.close()
+            self.close()
 
 #===============================================================================
 class QRcode(QDialog):
-    def __init__(self):
+    def __init__(self, qr_file: str):
         super().__init__()
 
         # Store a reference to the main window(login)
 
         self.setWindowTitle('QR Query')
         self.setGeometry(400, 400, 400, 400)
+
+        pixmap = QPixmap(qr_file)
+
+        label = QLabel()
+        label.setPixmap(pixmap)
+
+        l = QVBoxLayout(self)
+        l.addChildWidget(label)
+
+        self.setLayout(l)
         
 #===============================================================================
 class UserOperationMenu(QWidget):
@@ -271,4 +282,4 @@ class UserOperationMenu(QWidget):
         UpdateUserWindow(self.db).exec_()
     
     def showcode(self):
-        QRcode().exec_()
+        QRcode("usuarios_qr.png").exec_()
