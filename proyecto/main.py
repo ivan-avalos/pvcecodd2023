@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMainWindow,
                              QMessageBox, QPushButton, QVBoxLayout, QWidget)
 
 from database import Database
+from mantenimiento import *
 from models import Usuario
 from usuarios import *
 
@@ -112,7 +113,8 @@ class AdminWindow(QMainWindow):
         self.userops_win.show()
 
     def open_maintenance(self):
-        pass
+        self.maintops_win = MaintenanceOperationMenu(self.db)
+        self.maintops_win.show()
 
 # ========================================================================VENTANA PRINCIPAL PARA EL USUARIO
 class UserWindow(QMainWindow):
@@ -150,7 +152,7 @@ class UserWindow(QMainWindow):
          self.login.show()
 
     def open_maintenance(self):
-        pass
+        MaintenanceOperationMenu(self.db).show()
   
 #--------------------------------------------------------------------------MAIN
 if __name__ == '__main__':

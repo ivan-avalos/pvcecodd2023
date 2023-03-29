@@ -340,13 +340,13 @@ class Mantenimiento:
         if self.id == None:
             cur.execute('''
             INSERT INTO mantenimientos (
-            tipo, fecha_creacion, servidor, fecha_servicio
+            tipo, fecha_creacion, servidor_id, fecha_servicio
             ) VALUES (?, ?, ?, ?)
             ''', row)
         else:
             cur.execute('''
             UPDATE mantenimientos SET
-            tipo = ?, fecha_creacion = ?, servidor = ?, fecha_servicio = ?
+            tipo = ?, fecha_creacion = ?, servidor_id = ?, fecha_servicio = ?
             WHERE id = ?
             ''', row + (self.id,))
         db.conn.commit()
